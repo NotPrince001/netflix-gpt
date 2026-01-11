@@ -1,6 +1,51 @@
-import React from "react";
+import React, { useState } from "react";
 
 const Login = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const initialFormData = {
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  };
+  const [formData, setFormData] = useState(initialFormData);
+  const handleLogin = () => {
+    if (isLogin) {
+      console.log("Login", formData);
+      const { email, password } = formData;
+      if (password !== localStorage.getItem(email)) {
+        alert("Incorrect email or password");
+        return;
+      }
+      console.log("User login!");
+      setFormData(initialFormData);
+    } else {
+      console.log("Signup", formData);
+
+      const { fullName, email, password, confirmPassword } = formData;
+
+      if (!fullName || !email || !password || !confirmPassword) {
+        alert("All fields are required");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+      }
+
+      localStorage.setItem(email, password);
+
+      console.log("User saved");
+
+      setFormData(initialFormData);
+      setIsLogin(true);
+    }
+  };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
   return (
     <div className="relative h-screen w-screen">
       {/* Background Image */}
@@ -20,12 +65,31 @@ const Login = () => {
       {/* Login Form */}
       <div className="relative z-10 flex justify-center items-center h-full">
         <form className="bg-black/75 p-10 rounded-md w-96 text-white flex flex-col gap-4">
-          <h1 className="text-3xl font-bold mb-4">Sign In</h1>
+          <h1 className="text-3xl font-bold mb-4">
+            {isLogin ? "Sign In" : "Sign Up"}
+          </h1>
+
+          {!isLogin ? (
+            <input
+              type="text"
+              placeholder="Full name"
+              className="p-3 rounded bg-gray-700 focus:outline-none"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              required
+            />
+          ) : (
+            ""
+          )}
 
           <input
             type="email"
             placeholder="Email address"
             className="p-3 rounded bg-gray-700 focus:outline-none"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
             required
           />
 
@@ -33,17 +97,45 @@ const Login = () => {
             type="password"
             placeholder="Password"
             className="p-3 rounded bg-gray-700 focus:outline-none"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
             required
           />
 
-          <button className="bg-red-600 py-3 rounded font-semibold mt-4 cursor-pointer">
-            Sign In
+          {!isLogin ? (
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              className="p-3 rounded bg-gray-700 focus:outline-none"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+            />
+          ) : (
+            ""
+          )}
+
+          <button
+            className="bg-red-600 py-3 rounded font-semibold mt-4 cursor-pointer"
+            type="button"
+            onClick={handleLogin}
+          >
+            {isLogin ? "Sign In" : "Sign Up"}
           </button>
 
           <p className="text-gray-400">
-            New to Netflix?{" "}
-            <button className="underline text-white cursor-pointer">
-              Sign up now
+            {isLogin ? "New to Netflix?" : "Already a member?"}{" "}
+            <button
+              className="underline text-white cursor-pointer"
+              type="button"
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setFormData(initialFormData);
+              }}
+            >
+              {isLogin ? "Sign up now" : "Login"}
             </button>
           </p>
         </form>
