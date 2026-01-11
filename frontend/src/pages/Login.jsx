@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import axios from "axios";
-import { checkValidData } from "../utils/validator";
+import { loginSchema, signupSchema } from "../utils/validator";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -10,54 +10,64 @@ const Login = () => {
   const fullName = useRef(null);
   const confirmPassword = useRef(null);
   const handleLogin = async () => {
-    const message = checkValidData(email.current.value, password.current.value);
-    if (message !== true) {
-      setErrorMessage(message);
+    setErrorMessage("");
+    if (isLogin) {
+      try {
+        await loginSchema.validate(
+          {
+            email: email.current.value,
+            password: password.current.value,
+          },
+          { abortEarly: true }
+        );
+      } catch (error) {
+        setErrorMessage(error.message);
+        return;
+      }
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/login`,
+          {
+            email: email.current.value,
+            password: password.current.value,
+          }
+        );
+        console.log(res.data.message);
+        setErrorMessage("");
+      } catch (error) {
+        console.log("Login Failed: ", error.response.data.message);
+        setErrorMessage(error.response.data.message || "Something went wrong");
+      }
     } else {
-      if (isLogin) {
-        try {
-          const res = await axios.post(
-            `${import.meta.env.VITE_BACKEND_URL}/login`,
-            {
-              email: email.current.value,
-              password: password.current.value,
-            }
-          );
-          console.log(res.data.message);
-          setErrorMessage("");
-        } catch (error) {
-          console.log("Login Failed: ", error.response.data.message);
-          setErrorMessage(
-            error.response.data.message || "Something went wrong"
-          );
-        }
-      } else {
-        if (!fullName.current.value.trim()) {
-          setErrorMessage("Full name is required!");
-          return;
-        }
-        if (password.current.value !== confirmPassword.current.value) {
-          setErrorMessage("Password does not match!");
-          return;
-        }
-        try {
-          const res = await axios.post(
-            `${import.meta.env.VITE_BACKEND_URL}/register`,
-            {
-              fullName: fullName.current.value,
-              email: email.current.value,
-              password: password.current.value,
-            }
-          );
-          alert(res.data.message);
-          setErrorMessage("");
-          setIsLogin(true);
-        } catch (error) {
-          console.log("signup Failed: ", error.response.data.message);
-          setErrorMessage(
-            error.response.data.message || "Something went wrong"
-          );
-        }
+      try {
+        await signupSchema.validate(
+          {
+            fullName: fullName.current.value,
+            email: email.current.value,
+            password: password.current.value,
+            confirmPassword: confirmPassword.current.value,
+          },
+          { abortEarly: true }
+        );
+      } catch (error) {
+        setErrorMessage(error.message);
+        return;
+      }
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/register`,
+          {
+            fullName: fullName.current.value,
+            email: email.current.value,
+            password: password.current.value,
+          }
+        );
+        alert(res.data.message);
+        setErrorMessage("");
+        setIsLogin(true);
+      } catch (error) {
+        console.log("signup Failed: ", error.response.data.message);
+        setErrorMessage(error.response.data.message || "Something went wrong");
       }
     }
   };
@@ -141,6 +151,10 @@ const Login = () => {
               type="button"
               onClick={() => {
                 setIsLogin(!isLogin);
+                email.current.value = "";
+                password.current.value = "";
+                if (confirmPassword.current) confirmPassword.current.value = "";
+                if (fullName.current) fullName.current.value = "";
                 setErrorMessage("");
               }}
             >

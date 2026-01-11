@@ -1,0 +1,8 @@
+#backend
+ - Joi Validation
+ - router for routes
+ -JWT
+
+#frontend
+ - go to browse on successfull login
+ - yup validation ✅
