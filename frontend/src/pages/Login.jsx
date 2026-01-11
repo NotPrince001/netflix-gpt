@@ -1,50 +1,65 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+import axios from "axios";
+import { checkValidData } from "../utils/validator";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const initialFormData = {
-    fullName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  };
-  const [formData, setFormData] = useState(initialFormData);
-  const handleLogin = () => {
-    if (isLogin) {
-      console.log("Login", formData);
-      const { email, password } = formData;
-      if (password !== localStorage.getItem(email)) {
-        alert("Incorrect email or password");
-        return;
-      }
-      console.log("User login!");
-      setFormData(initialFormData);
+  const [errorMessage, setErrorMessage] = useState("");
+  const email = useRef(null);
+  const password = useRef(null);
+  const fullName = useRef(null);
+  const confirmPassword = useRef(null);
+  const handleLogin = async () => {
+    const message = checkValidData(email.current.value, password.current.value);
+    if (message !== true) {
+      setErrorMessage(message);
     } else {
-      console.log("Signup", formData);
-
-      const { fullName, email, password, confirmPassword } = formData;
-
-      if (!fullName || !email || !password || !confirmPassword) {
-        alert("All fields are required");
-        return;
+      if (isLogin) {
+        try {
+          const res = await axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/login`,
+            {
+              email: email.current.value,
+              password: password.current.value,
+            }
+          );
+          console.log(res.data.message);
+          setErrorMessage("");
+        } catch (error) {
+          console.log("Login Failed: ", error.response.data.message);
+          setErrorMessage(
+            error.response.data.message || "Something went wrong"
+          );
+        }
+      } else {
+        if (!fullName.current.value.trim()) {
+          setErrorMessage("Full name is required!");
+          return;
+        }
+        if (password.current.value !== confirmPassword.current.value) {
+          setErrorMessage("Password does not match!");
+          return;
+        }
+        try {
+          const res = await axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/register`,
+            {
+              fullName: fullName.current.value,
+              email: email.current.value,
+              password: password.current.value,
+            }
+          );
+          alert(res.data.message);
+          setErrorMessage("");
+          setIsLogin(true);
+        } catch (error) {
+          console.log("signup Failed: ", error.response.data.message);
+          setErrorMessage(
+            error.response.data.message || "Something went wrong"
+          );
+        }
       }
-
-      if (password !== confirmPassword) {
-        alert("Passwords do not match!");
-        return;
-      }
-
-      localStorage.setItem(email, password);
-
-      console.log("User saved");
-
-      setFormData(initialFormData);
-      setIsLogin(true);
     }
-  };
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
   };
   return (
     <div className="relative h-screen w-screen">
@@ -71,12 +86,10 @@ const Login = () => {
 
           {!isLogin ? (
             <input
+              ref={fullName}
               type="text"
               placeholder="Full name"
               className="p-3 rounded bg-gray-700 focus:outline-none"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
               required
             />
           ) : (
@@ -84,38 +97,34 @@ const Login = () => {
           )}
 
           <input
+            ref={email}
             type="email"
             placeholder="Email address"
             className="p-3 rounded bg-gray-700 focus:outline-none"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
             required
           />
 
           <input
+            ref={password}
             type="password"
             placeholder="Password"
             className="p-3 rounded bg-gray-700 focus:outline-none"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
             required
           />
 
           {!isLogin ? (
             <input
+              ref={confirmPassword}
               type="password"
               placeholder="Confirm Password"
               className="p-3 rounded bg-gray-700 focus:outline-none"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
               required
             />
           ) : (
             ""
           )}
+
+          <p className="text-red-700">{errorMessage}</p>
 
           <button
             className="bg-red-600 py-3 rounded font-semibold mt-4 cursor-pointer"
@@ -132,7 +141,7 @@ const Login = () => {
               type="button"
               onClick={() => {
                 setIsLogin(!isLogin);
-                setFormData(initialFormData);
+                setErrorMessage("");
               }}
             >
               {isLogin ? "Sign up now" : "Login"}
