@@ -4,10 +4,10 @@ const app = express();
 const dotenv = require("dotenv");
 const userRouter = require("./routes/login");
 const cors = require("cors");
-
+const cookieParser = require("cookie-parser");
 dotenv.config();
 const PORT = process.env.PORT || 3000;
-
+app.use(cookieParser());
 app.use(express.json());
 app.use(
   cors({

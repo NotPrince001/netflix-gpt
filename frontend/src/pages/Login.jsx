@@ -1,7 +1,8 @@
 import React, { useRef, useState } from "react";
 import axios from "axios";
 import { loginSchema, signupSchema } from "../utils/validator";
-
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/userSlice";
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -9,6 +10,7 @@ const Login = () => {
   const password = useRef(null);
   const fullName = useRef(null);
   const confirmPassword = useRef(null);
+  const dispatch = useDispatch();
   const handleLogin = async () => {
     setErrorMessage("");
     if (isLogin) {
@@ -30,9 +32,17 @@ const Login = () => {
           {
             email: email.current.value,
             password: password.current.value,
-          }
+          },
+          { withCredentials: true }
         );
-        console.log(res.data.message);
+        console.log(res.data);
+        dispatch(
+          addUser({
+            userId: res.data._id,
+            fullName: res.data.fullName,
+            email: res.data.email,
+          })
+        );
         setErrorMessage("");
       } catch (error) {
         console.log("Login Failed: ", error.response.data.message);
@@ -60,7 +70,8 @@ const Login = () => {
             fullName: fullName.current.value,
             email: email.current.value,
             password: password.current.value,
-          }
+          },
+          { withCredentials: true }
         );
         alert(res.data.message);
         setErrorMessage("");

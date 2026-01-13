@@ -1,5 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const router = express.Router();
 const validate = require("../middleware/validate");
@@ -37,7 +38,18 @@ router.post("/login", validate(loginSchema), async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    res.status(200).json({ message: "Login Successfull!" });
+    const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+    console.log(existingUser);
+    res.status(200).send(existingUser);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
