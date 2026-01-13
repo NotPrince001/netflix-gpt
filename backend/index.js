@@ -2,7 +2,7 @@ const express = require("express");
 const dbConnect = require("./DB/connection");
 const app = express();
 const dotenv = require("dotenv");
-const userRouter = require("./routes/login");
+const router = require("./routes/combine");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 dotenv.config();
@@ -17,7 +17,7 @@ app.use(
 );
 dbConnect();
 
-app.use(userRouter);
+app.use(router);
 
 app.listen(PORT, () => {
   console.log(`Server running at port ${PORT}`);

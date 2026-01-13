@@ -3,6 +3,7 @@ import axios from "axios";
 import { loginSchema, signupSchema } from "../utils/validator";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
+import { useNavigate } from "react-router-dom";
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -11,6 +12,7 @@ const Login = () => {
   const fullName = useRef(null);
   const confirmPassword = useRef(null);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const handleLogin = async () => {
     setErrorMessage("");
     if (isLogin) {
@@ -44,6 +46,7 @@ const Login = () => {
           })
         );
         setErrorMessage("");
+        navigate("/browse");
       } catch (error) {
         console.log("Login Failed: ", error.response.data.message);
         setErrorMessage(error.response.data.message || "Something went wrong");

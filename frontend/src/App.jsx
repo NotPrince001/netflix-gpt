@@ -3,6 +3,7 @@ import appStore from "./utils/appStore";
 import { Provider } from "react-redux";
 import Login from "./pages/Login";
 import Browse from "./pages/Browse";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   const appRouter = createBrowserRouter([
@@ -12,7 +13,11 @@ const App = () => {
     },
     {
       path: "/browse",
-      element: <Browse />,
+      element: (
+        <ProtectedRoute>
+          <Browse />
+        </ProtectedRoute>
+      ),
     },
   ]);
   return (
